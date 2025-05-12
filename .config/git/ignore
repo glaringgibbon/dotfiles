@@ -1,0 +1,23 @@
+# User specific PID and secret info
+config.local
+
+# Compiled files
+*.pyc
+*.o
+*.so
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Editor temp files
+*.swp
+*~
+*.swo
+
+# Debug logs
+*.log
+*.tmp
+
+# Lazygit/LazyVim artifacts
+lazy-lock.json

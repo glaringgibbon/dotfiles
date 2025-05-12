@@ -1,0 +1,27 @@
+[general]
+# $XDG_CONFIG_HOME/alacritty/alacritty.toml
+
+# Live config reload
+live_config_reload = true
+
+# Working directory - use parent process directory
+working_directory = "None"
+
+# IPC socket for alacritty msg (unix only)
+ipc_socket = true
+
+# Import modular configurations
+import = [
+  "themes/tokyonight.toml",
+  "fonts/active-font.toml",
+  "conf.d/env.toml",
+  "conf.d/window.toml",
+  "conf.d/scrolling.toml",
+  "conf.d/bell.toml",
+  "conf.d/selection.toml",
+  "conf.d/cursor.toml",
+  "conf.d/terminal.toml",
+  "conf.d/mouse.toml",
+  "conf.d/hints.toml",
+  "conf.d/keyboard.toml",
+]

@@ -1,0 +1,48 @@
+[init]
+	defaultBranch = main
+
+[core]
+	editor = nvim  editor = nvim                      # Use Neovim for commit messages
+  pager = delta                                     # Modern diff viewer
+  excludesfile = ~/.config/git/ignore               # Global ignore patterns
+  autocrlf = input                                  # Handle line endings properly (Linux)
+
+[push]
+  autoSetupRemote = true                            # Simplify pushing new branches
+  default = simple                                  # Safety against accidental pushes
+
+[pull]
+  rebase = true                                     # Prefer rebase over merge
+
+[merge]
+  conflictStyle = diff3                             # Better conflict markers
+  ff = only                                         # Fast-forward only when possible
+
+[alias]
+  # Shortcuts
+  co = checkout
+  st = status -sb
+  br = branch --verbose
+  ci = commit
+  amend = commit --amend --no-edit
+  undo = reset HEAD~1                               # Undo last commit
+  
+  # Enhanced log
+  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+  
+  # Diff utilities
+  dw = diff -w                                      # Ignore whitespace
+  dc = diff --cached                                # Staged changes
+  
+  # Branch management
+  cleanup = "!git branch --merged | grep -v '\\*\\|main\\|dev\\|test' | xargs -n 1 git branch -d"
+
+[delta]
+  features = line-numbers decorations
+  syntax-theme = Dracula                            # Requires delta package
+
+[include]
+  path = ~/.config/git/config.local                 # User specific info - NOT to be tracked in VCS
+
+[includeIf "gitdir:~/projects/"]
+  path = ~/.config/git/work.inc                     # Work-specific overrides

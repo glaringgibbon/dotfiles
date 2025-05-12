@@ -1,0 +1,9 @@
+# $XDG_CONFIG_HOME/alacritty/conf.d/cursor.toml
+
+[cursor]
+style = { shape = "Block", blinking = "On" }
+vi_mode_style = "Block"
+blink_interval = 750
+blink_timeout = 5
+unfocused_hollow = true
+thickness = 0.15

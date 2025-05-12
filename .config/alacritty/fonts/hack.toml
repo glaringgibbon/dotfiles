@@ -1,0 +1,12 @@
+# $XDG_CONFIG_HOME/alacritty/fonts/
+
+[font]
+normal = { family = "Nerd Font", style = "Regular" }
+bold = { family = "Nerd Font", style = "Bold" }
+italic = { family = "Nerd Font", style = "Italic" }
+bold_italic = { family = "Nerd Font", style = "Bold Italic" }
+size = 11.0
+offset = { x = 0, y = 0 }
+glyph_offset = { x = 0, y = 0 }
+
+builtin_box_drawing = true

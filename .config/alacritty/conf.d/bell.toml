@@ -1,0 +1,7 @@
+# $XDG_CONFIG_HOME/alacritty/conf.d/bell.toml
+
+[bell]
+animation = "EaseOutExpo"
+duration = 0
+color = "#ffffff"
+command = "None"

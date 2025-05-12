@@ -1,0 +1,5 @@
+# $XDG_CONFIG_HOME/alacritty/conf.d/scrolling.toml
+
+[scrolling]
+history = 10000
+multiplier = 3
