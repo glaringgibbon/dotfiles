@@ -48,6 +48,9 @@ fi
 # Add go binaries to path if they exist
 [[ -d "$GOPATH/bin" ]] && export PATH="$GOPATH/bin:$PATH"
 
+# Global Node path
+export PATH="$HOME/.npm-global/bin:$PATH"
+
 # Configure zoxide if available
 if command -v zoxide &>/dev/null; then
     eval "$(zoxide init zsh)"
