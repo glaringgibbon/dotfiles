@@ -2,6 +2,9 @@
 # Main zsh configuration file
 # HomeLab Dotfiles - Created 2025-05-05
 
+# Performance profiling (uncomment to enable)
+zmodload zsh/zprof
+
 # Check for local pre-configuration
 [[ -f "${ZDOTDIR}/local/before.zsh" ]] && source "${ZDOTDIR}/local/before.zsh"
 
@@ -36,4 +39,4 @@ fi
 check_lang_versions()
 
 # Performance profiling output (uncomment to enable)
-# zprof
+zprof
