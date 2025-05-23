@@ -36,7 +36,8 @@ export PROJECTS_DIR="$HOME/projects"
 export VENVS_DIR="$PROJECTS_DIR/venvs"
 
 # Python Poetry path
-export PATH="$HOME/.local/share/pypoetry/venv/bin:$PATH"
+# Poetry path not needed as pipx handles this for us
+#export PATH="$HOME/.local/share/pypoetry/venv/bin:$PATH"
 export POETRY_CONFIG_DIR="${XDG_CONFIG_HOME}/poetry"
 export POETRY_CACHE_DIR="${XDG_CACHE_HOME}/poetry"
 export POETRY_DATA_DIR="${XDG_DATA_HOME}/poetry"
@@ -45,8 +46,12 @@ export POETRY_DATA_DIR="${XDG_DATA_HOME}/poetry"
 export POETRY_VIRTUALENVS_PATH="${VENVS_DIR}/poetry/"
 
 # Podman/container configuration
-export CONTAINER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
-export DOCKER_HOST="$CONTAINER_HOST"
+# Originally the values for these two were the other way around
+# Claude seems to think CONTAINER_HOST is redundant, that podman knows what to do already
+# That's why it is commented out for now
+# DOCKER_HOST is temporary, may or may not need it
+#export CONTAINER_HOST="podman"
+export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
 
 # Set default permissions for new files
 umask 022
@@ -55,15 +60,6 @@ umask 022
 if command -v direnv &>/dev/null; then
     eval "$(direnv hook zsh)"
 fi
-# I am not sure that these language path's are required. Please advise.
-# Add rust binaries to path if they exist
-[[ -d "$CARGO_HOME/bin" ]] && export PATH="$CARGO_HOME/bin:$PATH"
-
-# Add go binaries to path if they exist
-[[ -d "$GOPATH/bin" ]] && export PATH="$GOPATH/bin:$PATH"
-
-# Global Node path
-[[ -d "$NODE_GLOBAL/bin" ]] && export PATH="$NODE_GLOBAL/bin:$PATH"
 
 # Configure zoxide if available
 if command -v zoxide &>/dev/null; then
