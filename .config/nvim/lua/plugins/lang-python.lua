@@ -1,9 +1,33 @@
+local vim = vim
+local state = require("config.state")
+local notify = vim.notify
+
+-- Helper function for debugpy setup
+local function setup_debugpy()
+  local mason_registry = require("mason-registry")
+  if not mason_registry.is_installed("debugpy") then
+    notify("Installing debugpy...", vim.log.levels.INFO)
+    mason_registry.get_package("debugpy"):install()
+  end
+  return mason_registry.get_package("debugpy"):get_install_path() .. "/venv/bin/python"
+end
+
 return {
   {
     "neovim/nvim-lspconfig",
+    enabled = function()
+      return state.is_language_ready("python")
+    end,
     opts = {
       servers = {
         pyright = {
+          before_init = function(_, config)
+            if not state.validate_provider("python") then
+              notify("Python provider not properly configured", vim.log.levels.ERROR)
+              return false
+            end
+            -- Additional pyright configuration can go here
+          end,
           settings = {
             python = {
               analysis = {
@@ -37,33 +61,36 @@ return {
   },
   {
     "williamboman/mason.nvim",
+    enabled = function()
+      return state.is_language_ready("python")
+    end,
     opts = function(_, opts)
       opts.ensure_installed = opts.ensure_installed or {}
-      table.insert(opts.ensure_installed, "debugpy")
-      table.insert(opts.ensure_installed, "pyright")
-      table.insert(opts.ensure_installed, "ruff")
+      vim.list_extend(opts.ensure_installed, {
+        "debugpy",
+        "pyright",
+        "ruff",
+      })
     end,
   },
   {
     "mfussenegger/nvim-dap",
     optional = true,
+    enabled = function()
+      return state.is_language_ready("python")
+    end,
     dependencies = {
       "mfussenegger/nvim-dap-python",
       config = function()
-        local mason_registry = require("mason-registry")
-        -- Ensure debugpy is installed
-        if not mason_registry.is_installed("debugpy") then
-          require("notify")("Installing debugpy...", "info")
-          mason_registry.get_package("debugpy"):install()
-        end
-        -- Setup dap-python with the installed debugpy
-        local debugpy_path = mason_registry.get_package("debugpy"):get_install_path()
-        require("dap-python").setup(debugpy_path .. "/venv/bin/python")
+        require("dap-python").setup(setup_debugpy())
       end,
     },
   },
   {
     "linux-cultist/venv-selector.nvim",
+    enabled = function()
+      return state.is_language_ready("python")
+    end,
     cmd = "VenvSelect",
     opts = {
       name = {
@@ -72,6 +99,7 @@ return {
         "env",
         ".env",
       },
+      parents = 0, -- Don't search parent directories for venvs
     },
     keys = {
       { "<leader>cv", "<cmd>:VenvSelect<cr>", desc = "Select VirtualEnv" },
@@ -79,16 +107,12 @@ return {
   },
   {
     "mfussenegger/nvim-dap-python",
+    enabled = function()
+      return state.is_language_ready("python")
+    end,
     config = function()
-      local mason_registry = require("mason-registry")
-      -- Ensure debugpy is installed
-      if not mason_registry.is_installed("debugpy") then
-        require("notify")("Installing debugpy...", "info")
-        mason_registry.get_package("debugpy"):install()
-      end
-      -- Setup dap-python with the installed debugpy
-      local debugpy_path = mason_registry.get_package("debugpy"):get_install_path()
-      require("dap-python").setup(debugpy_path .. "/venv/bin/python")
+      local debugpy_python = setup_debugpy()
+      require("dap-python").setup(debugpy_python)
       require("dap-python").test_runner = "pytest"
     end,
     keys = {
@@ -111,6 +135,9 @@ return {
   {
     "nvim-neotest/neotest",
     optional = true,
+    enabled = function()
+      return state.is_language_ready("python")
+    end,
     dependencies = {
       "nvim-neotest/neotest-python",
     },
@@ -118,14 +145,7 @@ return {
       adapters = {
         ["neotest-python"] = {
           runner = "pytest",
-          python = function()
-            local mason_registry = require("mason-registry")
-            if not mason_registry.is_installed("debugpy") then
-              require("notify")("Installing debugpy...", "info")
-              mason_registry.get_package("debugpy"):install()
-            end
-            return mason_registry.get_package("debugpy"):get_install_path() .. "/venv/bin/python"
-          end,
+          python = setup_debugpy,
         },
       },
     },
