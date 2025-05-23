@@ -34,6 +34,9 @@ return {
         "sqls",
         "sql-formatter",
         "sqlfluff",
+        -- KoolKidz Toolz
+        "gopls",
+        "rust-analyzer",
       },
       ui = {
         border = "rounded",
