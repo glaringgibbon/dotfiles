@@ -30,36 +30,29 @@ function _update_state() {
 # Check Python environment
 function check_python_env() {
     _init_state_file
-    # Does this gets major, minor and path numbers, Poetry only uses major and minor
-    # Refer to original function which only gets major and minor which is what Poetry uses
-    local current_version=$(python3 --version | cut -d' ' -f2)
+    
+    local major_minor=$(echo "${SYSTEM_PYTHON_VERSION}" | cut -d. -f1-2)
     local stored_version=$(jq -r '.python.version // ""' "${LANG_STATE_FILE}")
     
-    if [[ "${current_version}" != "${stored_version}" ]]; then
-        echo "Python version changed: ${stored_version} -> ${current_version}"
+    if [[ "${SYSTEM_PYTHON_VERSION}" != "${stored_version}" ]]; then
+        echo "Python version changed: ${stored_version} -> ${SYSTEM_PYTHON_VERSION}"
         
         # Update providers
-        # You missed this out - If pipx not updated poetry won't run
         echo "Updating Python virtualenvs..."
         pipx reinstall-all
         
-        # Update Poetry and create new Neovim environment
+        # Update Poetry
         poetry self update
-        poetry config virtualenvs.in-project false
-        poetry config virtualenvs.path "${POETRY_VIRTUALENVS_PATH}"
         
-        # Create new Neovim environment
-        # Why? Poetry should create a new venv using new python version in name 
-        # Why? Poetry project not located here, this location is for lua config files
-        # Why? Neovim config files are being symlinked here from ~/projects/dotfiles/
-        cd "${XDG_CONFIG_HOME}/nvim" || return
-        poetry install
-        
-        # Get new provider path
-        local provider_path=$(poetry env info -p)/bin/python
+        # Get provider path
+        local provider_path="${POETRY_VIRTUALENVS_PATH}/neovim-*/py${major_minor}/bin/python"
+        if [[ ! -f ${provider_path} ]]; then
+            echo "Failed to find Python provider path"
+            return 1
+        fi
         
         # Update state
-        _update_state "python" "${current_version}" "${provider_path}"
+        _update_state "python" "${SYSTEM_PYTHON_VERSION}" "${provider_path}"
     fi
 }
 
@@ -76,6 +69,14 @@ function check_go_env() {
     
     if [[ "${current_version}" != "${stored_version}" ]]; then
         echo "Go version changed: ${stored_version} -> ${current_version}"
+        
+        # Update Go tools if needed
+        if [[ -d "${GOPATH}" ]]; then
+            echo "Updating Go tools..."
+            cd "${GOPATH}" || return
+            go get -u all
+        fi
+        
         # Update state - Go doesn't need provider path
         _update_state "go" "${current_version}" ""
     fi
@@ -94,6 +95,14 @@ function check_rust_env() {
     
     if [[ "${current_version}" != "${stored_version}" ]]; then
         echo "Rust version changed: ${stored_version} -> ${current_version}"
+        
+        # Update Rust tools if needed
+        if [[ -d "${CARGO_HOME}" ]]; then
+            echo "Updating Rust tools..."
+            cd "${CARGO_HOME}" || return
+            cargo update
+        fi
+        
         # Update state - Rust doesn't need provider path
         _update_state "rust" "${current_version}" ""
     fi
@@ -112,11 +121,17 @@ function check_node_env() {
     
     if [[ "${current_version}" != "${stored_version}" ]]; then
         echo "Node version changed: ${stored_version} -> ${current_version}"
+        
         # Install/Update neovim package globally
-        npm install -g neovim
+        npm update -g neovim
         
         # Update state with provider path
-        local provider_path="${NPM_CONFIG_PREFIX}/bin/neovim-node-host"
+        local provider_path="${HOME}/.npm-global/bin/neovim-node-host"
+        if [[ ! -f ${provider_path} ]]; then
+            echo "Failed to find Node provider path"
+            return 1
+        fi
+        
         _update_state "node" "${current_version}" "${provider_path}"
     fi
 }
@@ -127,50 +142,4 @@ function check_lang_versions() {
     check_go_env
     check_rust_env
     check_node_env
-}
-# Original version left here for you to consider and compare
-function version_update() {
-    local current_version=$(python3 --version | sed 's/Python //')
-    local major_minor=$(echo "$current_version" | cut -d. -f1-2)
-    local state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/nvim"
-    local state_file="$state_dir/provider_state.json"
-    
-    # Read current state
-    local stored_version=""
-    if [[ -f "$state_file" ]]; then
-        stored_version=$(jq -r '.python.version // empty' "$state_file")
-    fi
-    
-    if [[ "$current_version" != "$stored_version" ]]; then
-        echo "Python version changed from $stored_version to $current_version"
-        
-        # Update providers
-        echo "Updating Python providers..."
-        pipx reinstall-all
-        
-        cd ~/projects/neovim
-        poetry env use python3
-        poetry update
-        
-        # Update state file and environment variables
-        local provider_path="$HOME/projects/venvs/poetry/neovim-GkWJIk93-py${major_minor}/bin/python"
-        mkdir -p "$state_dir"
-        
-        # Update state file
-        jq -n \
-            --arg version "$current_version" \
-            --arg provider "$provider_path" \
-            '{"python":{"version":$version,"provider_path":$provider}}' > "$state_file"
-            
-        # Export environment variables
-        export SYSTEM_PYTHON_VERSION="$current_version"
-        export NVIM_PYTHON_PROVIDER="$provider_path"
-        
-        # Update environment.zsh with new values
-        local env_file="${ZDOTDIR}/lib/environment.zsh"
-        sed -i "s/^export SYSTEM_PYTHON_VERSION=.*/export SYSTEM_PYTHON_VERSION=\"$current_version\"/" "$env_file"
-        sed -i "s|^export NVIM_PYTHON_PROVIDER=.*|export NVIM_PYTHON_PROVIDER=\"$provider_path\"|" "$env_file"
-        
-        echo "Provider updates complete"
-    fi
 }
