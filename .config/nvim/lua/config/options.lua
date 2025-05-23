@@ -5,11 +5,13 @@
 -- $XDG_CONFIG_HOME/nvim/lua/config/options.lua
 
 local state = require("config.state")
-local opt = vim.opt
+--local opt = vim.opt
 local g = vim.g
 local notify = vim.notify
 local log_levels = vim.log.levels
---
+-- I think these are already set in LazyVim, seems redundant at the moment
+-- However, may be useful later if there are some options I'd like to override
+-- Leave commented out for now
 -- General editor options
 --opt.number = true
 --opt.relativenumber = true
