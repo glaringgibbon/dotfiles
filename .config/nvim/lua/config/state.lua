@@ -1,41 +1,58 @@
--- lua/config/state.lua
+-- $XDG_CONFIG_HOME/nvim/lua/config/state.lua
+
 local M = {}
+local uv = vim.loop
+local fn = vim.fn
+local env = vim.env
+local notify = vim.notify
+local log_levels = vim.log.levels
+local json = vim.json
+local state_file = string.format("%s/nvim/lang_state.json", env.XDG_STATE_HOME or fn.expand("~/.local/state"))
 
-local state_dir = vim.env.XDG_STATE_HOME or (os.getenv("HOME") .. "/.local/state")
-local nvim_state_dir = state_dir .. "/nvim"
-local state_file = nvim_state_dir .. "/provider_state.json"
-
-function M.ensure_state_dir()
-  -- Create state directory if it doesn't exist
-  if vim.fn.isdirectory(nvim_state_dir) == 0 then
-    vim.fn.mkdir(nvim_state_dir, "p")
+-- Ensure state directory exists
+local function ensure_state_dir()
+  local state_dir = fn.fnamemodify(state_file, ":h")
+  if fn.isdirectory(state_dir) == 0 then
+    fn.mkdir(state_dir, "p")
   end
 end
 
+-- Read state file
 function M.read_state()
-  M.ensure_state_dir()
-  if vim.fn.filereadable(state_file) == 1 then
-    local content = vim.fn.readfile(state_file)
-    if #content > 0 then
-      return vim.json.decode(content[1])
-    end
+  ensure_state_dir()
+  local fd = uv.fs_open(state_file, "r", 438)
+  if not fd then
+    return {}
   end
-  return {}
+
+  local stat = uv.fs_fstat(fd)
+  local data = uv.fs_read(fd, stat.size, 0)
+  uv.fs_close(fd)
+
+  local ok, parsed = pcall(json.decode, data)
+  if not ok then
+    notify("Failed to parse state file", log_levels.ERROR)
+    return {}
+  end
+  return parsed
 end
 
-function M.write_state(data)
-  M.ensure_state_dir()
-  local encoded = vim.json.encode(data)
-  vim.fn.writefile({ encoded }, state_file)
-end
-
-function M.update_python_state(version, provider_path)
+-- Get provider path for a language
+function M.get_provider_path(lang)
   local state = M.read_state()
-  state.python = {
-    version = version,
-    provider_path = provider_path,
-  }
-  M.write_state(state)
+  return state[lang] and state[lang].provider_path or nil
+end
+
+-- Get version for a language
+function M.get_version(lang)
+  local state = M.read_state()
+  return state[lang] and state[lang].version or nil
+end
+
+-- Check if language is installed and configured
+function M.is_language_ready(lang)
+  local state = M.read_state()
+  return state[lang] and state[lang].version ~= nil
 end
 
 return M
