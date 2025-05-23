@@ -100,7 +100,27 @@ alias vim='$EDITOR'
 alias py='python'
 alias ipy='ipython'
 alias pipup='pip list --outdated --format=columns | tail -n +3 | cut -d" " -f1 | xargs -n1 pip install -U'
-alias poetry-shell='poetry shell'
+
+# Poetry
+#alias poetry-shell='poetry shell'
+alias pn='poetry_new'
+alias pi='poetry_init'
+alias pv='poetry_venv'
+alias pa='poetry add'
+alias pad='poetry add --dev'
+alias pr='poetry remove'
+alias pu='poetry update'
+alias ps='poetry shell'
+alias prun='poetry run'
+alias pi='poetry install'
+
+# Additional useful aliases
+alias pshow='poetry show'           # Show all packages
+alias pout='poetry show --outdated' # Show outdated packages
+alias pcheck='poetry check'         # Validate pyproject.toml
+alias penv='poetry env info'        # Show virtual environment info
+alias plock='poetry lock'           # Lock dependencies without installing
+alias pexport='poetry export'       # Export dependencies to requirements.txt
 
 # Package management - smart detection
 # For Fedora/RHEL/CentOS
@@ -134,7 +154,7 @@ alias meminfo='free -h'
 alias cpuinfo='lscpu'
 
 # Utilities
-alias src='source ~/.zshenv'
+alias src='source ${ZDOTDIR}/.zshrc'
 alias path='echo -e ${PATH//:/\\n}'
 alias now='date +"%T"'
 alias today='date +"%Y-%m-%d"'
