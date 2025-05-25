@@ -1,0 +1,166 @@
+-- lua/plugins/lang-php.lua
+return {
+  {
+    "neovim/nvim-lspconfig",
+    opts = {
+      servers = {
+        intelephense = {
+          settings = {
+            intelephense = {
+              files = {
+                maxSize = 5000000,
+              },
+              environment = {
+                phpVersion = "8.2",
+              },
+              format = {
+                braces = "k&r",
+              },
+              completion = {
+                insertUseDeclaration = true,
+                fullyQualifyGlobalConstantsAndFunctions = true,
+              },
+              diagnostics = {
+                undefinedTypes = true,
+                undefinedFunctions = true,
+                undefinedConstants = true,
+                undefinedProperties = true,
+                undefinedMethods = true,
+              },
+              stubs = {
+                "apache",
+                "bcmath",
+                "bz2",
+                "calendar",
+                "com_dotnet",
+                "Core",
+                "ctype",
+                "curl",
+                "date",
+                "dba",
+                "dom",
+                "enchant",
+                "exif",
+                "FFI",
+                "fileinfo",
+                "filter",
+                "fpm",
+                "ftp",
+                "gd",
+                "gettext",
+                "gmp",
+                "hash",
+                "iconv",
+                "imap",
+                "intl",
+                "json",
+                "ldap",
+                "libxml",
+                "mbstring",
+                "meta",
+                "mysqli",
+                "oci8",
+                "odbc",
+                "openssl",
+                "pcntl",
+                "pcre",
+                "PDO",
+                "pdo_ibm",
+                "pdo_mysql",
+                "pdo_pgsql",
+                "pdo_sqlite",
+                "pgsql",
+                "Phar",
+                "posix",
+                "pspell",
+                "readline",
+                "Reflection",
+                "session",
+                "shmop",
+                "SimpleXML",
+                "snmp",
+                "soap",
+                "sockets",
+                "sodium",
+                "SPL",
+                "sqlite3",
+                "standard",
+                "superglobals",
+                "sysvmsg",
+                "sysvsem",
+                "sysvshm",
+                "tidy",
+                "tokenizer",
+                "xml",
+                "xmlreader",
+                "xmlrpc",
+                "xmlwriter",
+                "xsl",
+                "Zend OPcache",
+                "zip",
+                "zlib",
+                "wordpress",
+                "woocommerce",
+                "phpunit",
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    "mfussenegger/nvim-dap",
+    optional = true,
+    dependencies = {
+      "xdebug/vscode-php-debug",
+      build = "npm install && npm run build",
+    },
+    config = function()
+      local dap = require("dap")
+      dap.configurations.php = {
+        {
+          type = "php",
+          request = "launch",
+          name = "Listen for Xdebug",
+          port = 9003,
+          pathMappings = {
+            ["/var/www/html"] = "${workspaceFolder}",
+          },
+        },
+        {
+          type = "php",
+          request = "launch",
+          name = "Launch PHP Script",
+          program = "${file}",
+          cwd = "${fileDirname}",
+          port = 9003,
+        },
+        {
+          type = "php",
+          request = "launch",
+          name = "Launch WordPress",
+          port = 9003,
+          serverSourceRoot = "/var/www/html",
+          localSourceRoot = "${workspaceFolder}",
+        },
+      }
+    end,
+  },
+  {
+    "nvim-neotest/neotest",
+    optional = true,
+    dependencies = {
+      "olimorris/neotest-phpunit",
+    },
+    opts = {
+      adapters = {
+        ["neotest-phpunit"] = {
+          phpunit_cmd = function()
+            return "vendor/bin/phpunit"
+          end,
+        },
+      },
+    },
+  },
+}
