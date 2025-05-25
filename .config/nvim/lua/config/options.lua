@@ -1,75 +1,119 @@
--- $XDG_CONFIG_HOME/nvim/lua/config/options.lua
+-- $XDG_CONFIG_HOME/nvim/lua/config/state.lua
 
--- Options are automatically loaded before lazy.nvim startup
--- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
-
-local state = require("config.state")
-local g = vim.g
+local M = {}
+local uv = vim.loop
+local fn = vim.fn
+local env = vim.env
 local notify = vim.notify
 local log_levels = vim.log.levels
+local json = vim.json
+local state_file = string.format("%s/nvim/lang_state.json", env.XDG_STATE_HOME or fn.expand("~/.local/state"))
 
--- Configure language providers
-local function setup_providers()
-  -- Python provider (required)
-  if state.is_language_ready("python") then
-    local python_provider = state.get_provider_path("python")
-    if python_provider then
-      g.python3_host_prog = python_provider
-      notify("Python provider configured: " .. python_provider, log_levels.INFO)
-    else
-      notify("Python provider path not found", log_levels.ERROR)
+-- Ensure state directory exists
+local function ensure_state_dir()
+  local state_dir = fn.fnamemodify(state_file, ":h")
+  if fn.isdirectory(state_dir) == 0 then
+    fn.mkdir(state_dir, "p")
+  end
+end
+
+-- Read state file
+function M.read_state()
+  ensure_state_dir()
+  local fd = uv.fs_open(state_file, "r", 438)
+  if not fd then
+    -- Initialize with empty state if file doesn't exist
+    return { python = {}, go = {}, rust = {}, node = {} }
+  end
+
+  local stat = uv.fs_fstat(fd)
+  local data = uv.fs_read(fd, stat.size, 0)
+  uv.fs_close(fd)
+
+  local ok, parsed = pcall(json.decode, data)
+  if not ok then
+    notify("Failed to parse state file", log_levels.ERROR)
+    return { python = {}, go = {}, rust = {}, node = {} }
+  end
+  return parsed
+end
+
+-- Get provider path for a language
+function M.get_provider_path(lang)
+  local state = M.read_state()
+  if not state[lang] or not state[lang].provider_path then
+    notify(string.format("No provider path found for %s", lang), log_levels.WARN)
+    return nil
+  end
+  return state[lang].provider_path
+end
+
+-- Get version for a language
+function M.get_version(lang)
+  local state = M.read_state()
+  return state[lang] and state[lang].version or nil
+end
+
+-- Check if language is installed and configured
+function M.is_language_ready(lang)
+  local state = M.read_state()
+  if not state[lang] then
+    return false
+  end
+
+  -- Check version exists
+  if not state[lang].version then
+    return false
+  end
+
+  -- Check provider path for languages that need it
+  if lang == "python" or lang == "node" then
+    if not state[lang].provider_path or not uv.fs_stat(state[lang].provider_path) then
+      return false
     end
-  else
-    notify("Python provider not properly configured", log_levels.ERROR)
   end
 
-  -- Node.js provider (optional)
-  if state.is_language_ready("node") then
-    local node_provider = state.get_provider_path("node")
-    if node_provider then
-      g.node_host_prog = node_provider
-      notify("Node.js provider configured: " .. node_provider, log_levels.INFO)
-    else
-      notify("Node.js provider path not found", log_levels.WARN)
-      g.loaded_node_provider = 0
+  return true
+end
+
+-- Validate provider configuration
+function M.validate_provider(lang)
+  if not M.is_language_ready(lang) then
+    notify(string.format("%s provider not properly configured", lang), log_levels.WARN)
+    return false
+  end
+
+  -- Additional checks for specific languages
+  if lang == "python" then
+    local provider_path = M.get_provider_path(lang)
+    if not provider_path or not fn.executable(provider_path) then
+      notify("Python provider not executable", log_levels.ERROR)
+      return false
     end
-  else
-    -- Don't warn if Node.js isn't installed - it's optional
-    g.loaded_node_provider = 0
+  elseif lang == "node" then
+    local provider_path = M.get_provider_path(lang)
+    if not provider_path or not fn.executable(provider_path) then
+      notify("Node provider not executable", log_levels.ERROR)
+      return false
+    end
   end
 
-  -- Go and Rust don't need providers, they use LSP
-  -- But we can check if they're ready
-  if not state.is_language_ready("go") then
-    notify("Go not configured", log_levels.INFO)
-  end
-
-  if not state.is_language_ready("rust") then
-    notify("Rust not configured", log_levels.INFO)
-  end
-
-  -- Disable unused providers
-  g.loaded_perl_provider = 0
-  g.loaded_ruby_provider = 0
+  return true
 end
 
 -- Check if providers need updating
-if state.check_providers() then
-  notify("Some language providers need updating. Run :checkhealth provider", log_levels.WARN)
+function M.check_providers()
+  local state = M.read_state()
+  local needs_update = false
+
+  for lang, config in pairs(state) do
+    if not M.validate_provider(lang) then
+      needs_update = true
+      notify(string.format("%s provider needs update", lang), log_levels.INFO)
+    end
+  end
+
+  return needs_update
 end
 
--- Initialize providers
-setup_providers()
-
--- LazyVim default options are good for now
--- Keeping commented section for future reference if we need to override anything
---[[ local opt = vim.opt
-opt.number = true
-opt.relativenumber = true
-opt.expandtab = true
-opt.shiftwidth = 4
-opt.tabstop = 4
-opt.smartindent = true
-opt.termguicolors = true
-opt.updatetime = 300
---]]
+return M
