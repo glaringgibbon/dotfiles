@@ -39,3 +39,12 @@ fi
 
 # Run language check and update function as late as possible after zsh config loaded
 check_lang_versions()
+
+i  
+      
+    # Wayland clipboard (wl-clipboard)  
+    if command -v wl-copy &> /dev/null; then  
+        alias pbcopy='wl-copy'  
+        alias pbpaste='wl-paste'  
+    fi  
+fi  
