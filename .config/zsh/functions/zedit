@@ -1,15 +1,15 @@
-  local file
-  case "$1" in
-    core)     file="${XDG_CONFIG_HOME}/zsh/lib/core.zsh" ;;
-    env)      file="${XDG_CONFIG_HOME}/zsh/lib/environment.zsh" ;;
-    alias)    file="${XDG_CONFIG_HOME}/zsh/lib/aliases.zsh" ;;
-    prompt)   file="${XDG_CONFIG_HOME}/zsh/lib/prompt.zsh" ;;
-    binding)  file="${XDG_CONFIG_HOME}/zsh/lib/key-bindings.zsh" ;;
-    term)     file="${XDG_CONFIG_HOME}/zsh/lib/terminal.zsh" ;;
-    comp)     file="${XDG_CONFIG_HOME}/zsh/lib/completion.zsh" ;;
-    hist)     file="${XDG_CONFIG_HOME}/zsh/lib/history.zsh" ;;
-    *)        file="${XDG_CONFIG_HOME}/zsh/.zshrc" ;;
-  esac
-  
-  ${EDITOR:-vim} "$file"
+local file
+case "$1" in
+  core)     file="${XDG_CONFIG_HOME}/zsh/lib/core.zsh" ;;
+  env)      file="${XDG_CONFIG_HOME}/zsh/lib/environment.zsh" ;;
+  alias)    file="${XDG_CONFIG_HOME}/zsh/lib/aliases.zsh" ;;
+  prompt)   file="${XDG_CONFIG_HOME}/zsh/lib/prompt.zsh" ;;
+  binding)  file="${XDG_CONFIG_HOME}/zsh/lib/key-bindings.zsh" ;;
+  term)     file="${XDG_CONFIG_HOME}/zsh/lib/terminal.zsh" ;;
+  comp)     file="${XDG_CONFIG_HOME}/zsh/lib/completion.zsh" ;;
+  hist)     file="${XDG_CONFIG_HOME}/zsh/lib/history.zsh" ;;
+  *)        file="${XDG_CONFIG_HOME}/zsh/.zshrc" ;;
+esac
+
+${EDITOR:-vim} "$file"
 

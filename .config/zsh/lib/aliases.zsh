@@ -40,8 +40,7 @@ command -v dust  &>/dev/null && alias du='dust'
 command -v procs &>/dev/null && alias ps='procs'
 
 # --- Zsh Specific ---
-alias zconf='nvim ${ZDOTDIR}/.zshrc'
-alias zreload='source ${ZDOTDIR}/.zshrc && echo "Zsh configuration reloaded."'
+alias zconf='nvim ~/projects/dotfiles/.config/zsh/zshrc'
 alias history='fc -li'
 
 # --- Development & Helpers ---
@@ -51,9 +50,6 @@ alias ip='ip -color=auto'
 
 # GNU Stow helpers
 alias stowd='cd ~/projects/dotfiles'
-alias dstow='stow --dir="$HOME/projects/dotfiles" --target="$HOME"'
-alias dstown='stow --no --dir="$HOME/projects/dotfiles" --target="$HOME"'
-alias undstow='stow -D --dir="$HOME/projects/dotfiles" --target="$HOME"'
 
 # kitty
 alias icat='kitten icat'

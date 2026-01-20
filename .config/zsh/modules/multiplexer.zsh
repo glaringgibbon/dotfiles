@@ -14,11 +14,11 @@ function ensure_tmux() {
     # Only autostart if tmux is installed
     if command -v tmux &>/dev/null; then
         # Attach to 'main' session or create it
-        exec tmux new-session -A -s main
+        exec tmux new-session -A -s adm
     fi
 }
 
 # Controlled by env var (default to no for safety during refactor)
-if [[ "${AUTO_TMUX:-no}" == "yes" ]]; then
+if [[ "${AUTO_TMUX:-yes}" == "yes" ]]; then
     ensure_tmux
 fi

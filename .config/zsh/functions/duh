@@ -1,1 +1,1 @@
-  du -h --max-depth=1 "${1:-.}" | sort -hr
+du -h --max-depth=1 "${1:-.}" | sort -hr

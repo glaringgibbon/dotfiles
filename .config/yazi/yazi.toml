@@ -46,3 +46,6 @@ highlight = "#e0af68"
 
 # Edit file
 "e" = "open_with"
+
+# Image viewer
+preview_method = "kitty"

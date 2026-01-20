@@ -3,6 +3,7 @@
 # HomeLab Dotfiles - Refactored 2026-01-18
 
 # --- Initialize Modules ---
+autoload -Uz add-zsh-hook
 autoload -Uz vcs_info
 setopt PROMPT_SUBST
 

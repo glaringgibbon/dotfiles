@@ -1,19 +1,19 @@
-  echo "CPU Information:"
-  lscpu | grep "Model name" | sed 's/Model name:[[:space:]]*//'
-  
-  echo -e "\nMemory Information:"
-  free -h | grep "Mem:" | awk '{print "Total: " $2 ", Used: " $3 ", Free: " $4}'
-  
-  echo -e "\nDisk Usage:"
-  df -h / | awk 'NR==2 {print "Total: " $2 ", Used: " $3 ", Free: " $4 ", Use%: " $5}'
-  
-  echo -e "\nDistribution:"
-  if command -v lsb_release &> /dev/null; then
-    lsb_release -d | sed 's/Description:[[:space:]]*//'
-  elif [ -f /etc/os-release ]; then
-    grep PRETTY_NAME /etc/os-release | sed 's/PRETTY_NAME=//g; s/"//g'
-  fi
-  
-  echo -e "\nKernel Version:"
-  uname -r
+echo "CPU Information:"
+lscpu | grep "Model name" | sed 's/Model name:[[:space:]]*//'
+
+echo -e "\nMemory Information:"
+free -h | grep "Mem:" | awk '{print "Total: " $2 ", Used: " $3 ", Free: " $4}'
+
+echo -e "\nDisk Usage:"
+df -h / | awk 'NR==2 {print "Total: " $2 ", Used: " $3 ", Free: " $4 ", Use%: " $5}'
+
+echo -e "\nDistribution:"
+if command -v lsb_release &> /dev/null; then
+  lsb_release -d | sed 's/Description:[[:space:]]*//'
+elif [ -f /etc/os-release ]; then
+  grep PRETTY_NAME /etc/os-release | sed 's/PRETTY_NAME=//g; s/"//g'
+fi
+
+echo -e "\nKernel Version:"
+uname -r
 

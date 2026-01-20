@@ -1,6 +1,6 @@
-  if [ -z "$1" ]; then
-    du -sh .
-  else
-    du -sh "$1"
-  fi
+if [ -z "$1" ]; then
+  du -sh .
+else
+  du -sh "$1"
+fi
 

@@ -1,0 +1,2 @@
+  local root="$HOME/projects/dotfiles"  
+  (cd "$root" && stow -v -D -t "$HOME" .)

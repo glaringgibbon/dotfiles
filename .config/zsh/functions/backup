@@ -1,6 +1,6 @@
-  local filename="${1}"
-  local filetime
-  filetime=$(date +%Y%m%d_%H%M%S)
-  cp -a "${filename}" "${filename}_${filetime}"
-  echo "Backed up ${filename} to ${filename}_${filetime}"
+local filename="${1}"
+local filetime
+filetime=$(date +%Y%m%d_%H%M%S)
+cp -a "${filename}" "${filename}_${filetime}"
+echo "Backed up ${filename} to ${filename}_${filetime}"
 
