@@ -1,26 +1,24 @@
-# In conf.d/multiplexer.zsh
+# $XDG_CONFIG_HOME/zsh/modules/multiplexer.zsh
+# Safe tmux autostart logic
+# HomeLab Dotfiles - Refactored 2026-01-18
+
 function ensure_tmux() {
-    # Don't nest tmux sessions
-    if [[ -n "$TMUX" ]]; then
-        return
-    fi
-
-    # Don't start tmux in specific situations
-    if [[ "$TERM" = "dumb" ]] || [[ -n "$EMACS" ]] || [[ -n "$VIM" ]]; then
-        return
-    fi
-
-    # Start or attach to session
-    if command -v tmux &> /dev/null; then
-        if tmux has-session 2>/dev/null; then
-            exec tmux attach
-        else
-            exec tmux new-session
-        fi
+    # Exit if already in tmux, or if not an interactive TTY
+    [[ -n "$TMUX" ]] && return
+    [[ ! -t 0 ]] && return
+    
+    # Exit if in a restricted environment
+    [[ "$TERM" == "dumb" ]] && return
+    [[ -n "$VIM" || -n "$NVIM" ]] && return
+    
+    # Only autostart if tmux is installed
+    if command -v tmux &>/dev/null; then
+        # Attach to 'main' session or create it
+        exec tmux new-session -A -s main
     fi
 }
 
-# Can be controlled via environment variable
-if [[ "${AUTO_TMUX:-yes}" = "yes" ]]; then
+# Controlled by env var (default to no for safety during refactor)
+if [[ "${AUTO_TMUX:-no}" == "yes" ]]; then
     ensure_tmux
 fi

@@ -1,0 +1,4 @@
+  local length="${1:-16}"
+  LC_ALL=C tr -dc 'A-Za-z0-9_!@#$%^&*()-+=' < /dev/urandom | head -c "$length"
+  echo
+

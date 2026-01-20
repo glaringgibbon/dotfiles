@@ -1,119 +1,74 @@
--- $XDG_CONFIG_HOME/nvim/lua/config/state.lua
+-- lua/config/state.lua
 
 local M = {}
-local uv = vim.loop
 local fn = vim.fn
-local env = vim.env
+local uv = vim.loop
 local notify = vim.notify
-local log_levels = vim.log.levels
-local json = vim.json
-local state_file = string.format("%s/nvim/lang_state.json", env.XDG_STATE_HOME or fn.expand("~/.local/state"))
+local log = vim.log.levels
 
--- Ensure state directory exists
-local function ensure_state_dir()
-  local state_dir = fn.fnamemodify(state_file, ":h")
-  if fn.isdirectory(state_dir) == 0 then
-    fn.mkdir(state_dir, "p")
+local state_file = fn.stdpath("state") .. "/provider_state.json"
+local uv_tools_dir = fn.expand("~/.local/share/uv/tools")
+local python_tool = uv_tools_dir .. "/pynvim/bin/python"
+
+-- Ensure directory exists
+local function ensure_dir(path)
+  if fn.isdirectory(path) == 0 then
+    fn.mkdir(path, "p")
   end
 end
 
--- Read state file
-function M.read_state()
-  ensure_state_dir()
+local function read_state()
+  ensure_dir(fn.stdpath("state"))
   local fd = uv.fs_open(state_file, "r", 438)
   if not fd then
-    -- Initialize with empty state if file doesn't exist
-    return { python = {}, go = {}, rust = {}, node = {} }
+    return { python = { version = "" }, nvim_version = "" }
   end
-
   local stat = uv.fs_fstat(fd)
   local data = uv.fs_read(fd, stat.size, 0)
   uv.fs_close(fd)
-
-  local ok, parsed = pcall(json.decode, data)
-  if not ok then
-    notify("Failed to parse state file", log_levels.ERROR)
-    return { python = {}, go = {}, rust = {}, node = {} }
-  end
-  return parsed
+  local ok, decoded = pcall(vim.json.decode, data)
+  return ok and decoded or { python = { version = "" }, nvim_version = "" }
 end
 
--- Get provider path for a language
-function M.get_provider_path(lang)
-  local state = M.read_state()
-  if not state[lang] or not state[lang].provider_path then
-    notify(string.format("No provider path found for %s", lang), log_levels.WARN)
+local function write_state(tbl)
+  local fd = uv.fs_open(state_file, "w", 438)
+  if fd then
+    uv.fs_write(fd, vim.json.encode(tbl), 0)
+    uv.fs_close(fd)
+  end
+end
+
+-- Ensure Python provider exists and return the executable path
+function M.ensure_python_provider()
+  -- If already installed
+  if fn.executable(python_tool) == 1 then
+    return python_tool
+  end
+
+  -- Install via uv tool
+  notify("Installing pynvim via uv tool install...", log.INFO)
+  local result = fn.system({ "uv", "tool", "install", "pynvim" })
+
+  if vim.v.shell_error ~= 0 then
+    notify("Failed to install pynvim: " .. result, log.ERROR)
     return nil
   end
-  return state[lang].provider_path
+
+  return python_tool
 end
 
--- Get version for a language
-function M.get_version(lang)
-  local state = M.read_state()
-  return state[lang] and state[lang].version or nil
-end
+-- Reinstall provider when Neovim version updates
+function M.sync_providers()
+  local state = read_state()
+  local ver = vim.version()
+  local current_ver = ("%d.%d.%d"):format(ver.major, ver.minor, ver.patch)
 
--- Check if language is installed and configured
-function M.is_language_ready(lang)
-  local state = M.read_state()
-  if not state[lang] then
-    return false
+  if state.nvim_version ~= current_ver then
+    notify("Neovim updated → refreshing Python provider", log.INFO)
+    fn.jobstart({ "uv", "tool", "upgrade", "pynvim" })
+    state.nvim_version = current_ver
+    write_state(state)
   end
-
-  -- Check version exists
-  if not state[lang].version then
-    return false
-  end
-
-  -- Check provider path for languages that need it
-  if lang == "python" or lang == "node" then
-    if not state[lang].provider_path or not uv.fs_stat(state[lang].provider_path) then
-      return false
-    end
-  end
-
-  return true
-end
-
--- Validate provider configuration
-function M.validate_provider(lang)
-  if not M.is_language_ready(lang) then
-    notify(string.format("%s provider not properly configured", lang), log_levels.WARN)
-    return false
-  end
-
-  -- Additional checks for specific languages
-  if lang == "python" then
-    local provider_path = M.get_provider_path(lang)
-    if not provider_path or not fn.executable(provider_path) then
-      notify("Python provider not executable", log_levels.ERROR)
-      return false
-    end
-  elseif lang == "node" then
-    local provider_path = M.get_provider_path(lang)
-    if not provider_path or not fn.executable(provider_path) then
-      notify("Node provider not executable", log_levels.ERROR)
-      return false
-    end
-  end
-
-  return true
-end
-
--- Check if providers need updating
-function M.check_providers()
-  local state = M.read_state()
-  local needs_update = false
-
-  for lang, config in pairs(state) do
-    if not M.validate_provider(lang) then
-      needs_update = true
-      notify(string.format("%s provider needs update", lang), log_levels.INFO)
-    end
-  end
-
-  return needs_update
 end
 
 return M

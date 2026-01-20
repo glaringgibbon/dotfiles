@@ -1,81 +1,30 @@
 # $XDG_CONFIG_HOME/zsh/lib/terminal.zsh
-# Terminal-specific settings
-# HomeLab Dotfiles - Created 2025-05-05
+# Terminal-specific settings and window titles
+# HomeLab Dotfiles - Refactored 2026-01-18
 
-# Set window title based on current command/directory
+# Function to set window title
 function set_window_title() {
-  # For local terminals show directory and command
-  if [[ -z "$SSH_CLIENT" ]]; then
-    print -Pn "\e]0;%~: $1\a"
-  else
-    # For SSH sessions, show hostname, directory and command
-    print -Pn "\e]0;%m: %~: $1\a"
-  fi
+    local title_prefix=""
+    [[ -n "$SSH_CLIENT" ]] && title_prefix="%m: "
+    print -Pn "\e]0;${title_prefix}%~: $1\a"
 }
 
-# Update window title before command execution
-function title_precmd() {
-  set_window_title "zsh"
-}
-
-function title_preexec() {
-  set_window_title "$1"
-}
-
-# Install the functions
+# Hooks for title updates
 autoload -Uz add-zsh-hook
-add-zsh-hook precmd title_precmd
-add-zsh-hook preexec title_preexec
+add-zsh-hook precmd  () { set_window_title "zsh" }
+add-zsh-hook preexec () { set_window_title "$1" }
 
-# Handle terminal capabilities
-# Ensure backspace and delete work correctly
-bindkey "^?" backward-delete-char
-bindkey "^[[3~" delete-char
+# Terminal-specific fixes
+case "$TERM" in
+    xterm*|alacritty|kitty|foot)
+        # Enable bracketed paste mode for modern terminals
+        printf "\e[?2004h"
+        ;;
+    linux)
+        # Disable cursor blinking on the actual TTY console
+        printf "\e[?1c"
+        ;;
+esac
 
-# Enable cursor shape changes based on vi mode
-# Block cursor for normal mode, beam for insert mode
-if [[ $TERM =~ 'xterm' || $TERM =~ 'alacritty' || $TERM = 'screen' || $TERM = 'tmux' ]]; then
-  cursor_mode() {
-    # 0 = blinking block
-    # 1 = blinking block (default)
-    # 2 = steady block
-    # 3 = blinking underline
-    # 4 = steady underline
-    # 5 = blinking beam
-    # 6 = steady beam
-    if [[ ${KEYMAP} == vicmd ]]; then
-      echo -ne '\e[2 q' # Use steady block in normal mode
-    else
-      echo -ne '\e[6 q' # Use steady beam in insert mode
-    fi
-  }
-  
-  zle-keymap-select() {
-    cursor_mode
-  }
-  
-  zle-line-init() {
-    cursor_mode
-  }
-  
-  zle -N zle-keymap-select
-  zle -N zle-line-init
-fi
-
-# Terminal specific settings for different terminals
-if [[ "$TERM" == "alacritty" ]]; then
-  # Alacritty specific settings
-  :
-elif [[ "$TERM" == "tmux-256color" || "$TERM" == "screen-256color" ]]; then
-  # tmux specific settings
-  :
-fi
-
-# Reset terminal if needed
+# Ensure terminal is in a sane state on exit
 ttyctl -f
-
-# Handle terminal closing properly
-function zshexit() {
-  # Reset cursor to default beam shape
-  echo -ne '\e[5 q'
-}

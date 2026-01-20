@@ -1,40 +1,61 @@
 return {
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     opts = {
       ensure_installed = {
-        -- Python
+        -- Python (handled by Python extra)
         "debugpy",
+        "pyright",
         "ruff",
         "mypy",
-        "pyright",
+
         -- Lua
         "lua-language-server",
         "stylua",
-        -- Web
+        "selene",
+
+        -- Web / Frontend
         "css-lsp",
         "html-lsp",
+        "emmet-ls",
         "typescript-language-server",
-        "prettier",
-        "eslint-lsp",
-        -- PHP
+        "prettierd",
+        "eslint_d",
+        "js-debug-adapter",
+
+        -- PHP / WordPress
         "intelephense",
+        "php-cs-fixer",
         "php-debug-adapter",
+        "phpstan",
+
         -- Shell
         "bash-language-server",
         "shfmt",
-        -- XML/YAML/JSON/TOML
-        "lemminx",
-        "yaml-language-server",
-        "json-lsp",
-        "taplo",
-        -- SQL
-        --"sqls",
-        --"sql-formatter",
-        --"sqlfluff",
-        -- KooKidz
-        -- "gopls",
-        -- "rust-analyzer",
+        "shellcheck",
+
+        -- Markup & Config
+        "lemminx", -- XML
+        "yaml-language-server", -- YAML
+        "yamllint", -- YAML lint
+        "json-lsp", -- JSON
+        "taplo", -- TOML
+
+        -- SQL (optional – uncomment if you keep SQLS)
+        -- "sqls",
+        -- "sqlfluff",
+        -- "sql-formatter",
+
+        -- CSS/SCSS
+        "stylelint",
+
+        -- Rust
+        "rust-analyzer",
+        "codelldb",
+
+        -- Go
+        "gopls",
+        "delve",
       },
       ui = {
         border = "rounded",
@@ -47,8 +68,9 @@ return {
       max_concurrent_installers = 10,
     },
   },
+
   {
-    "williamboman/mason-lspconfig.nvim",
+    "mason-org/mason-lspconfig.nvim",
     opts = {
       automatic_installation = true,
     },

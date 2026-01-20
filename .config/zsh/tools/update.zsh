@@ -1,55 +1,32 @@
-#!/usr/bin/env zsh
+# $XDG_CONFIG_HOME/zsh/tools/update.zsh
+# System and Dotfiles update utility
+# HomeLab Dotfiles - Refactored 2026-01-18
 
-# Manual language version check and update utility
-# Use when automatic updates fail or manual intervention needed
+function dotfiles_update() {
+    echo "--- Updating Zsh Plugins ---"
+    # This calls the function we defined in modules/plugins.zsh
+    local plugins=(
+        "zsh-users/zsh-completions"
+        "zsh-users/zsh-autosuggestions"
+        "zsh-users/zsh-syntax-highlighting"
+    )
+    for p in $plugins; do
+        plugin_install "$p"
+    done
 
-function manual_python_update() {
-    local version=${1:-$SYSTEM_PYTHON_VERSION}
-    cd "${PROJECTS_DIR}/neovim" || return 1
+    echo "\n--- Updating System Packages ---"
+    sudo dnf upgrade --refresh
+
+    echo "\n--- Updating Neovim (Lazy) ---"
+    nvim --headless "+Lazy! sync" +qa
+
+    echo "\n--- Cleaning Cache ---"
+    rm -f "${XDG_CACHE_HOME}/zsh/zcompdump-"*
     
-    echo "Manually updating Python environment for version ${version}..."
-    poetry env use "python${version}"
-    poetry update
-    
-    echo "Updating Python providers..."
-    pipx reinstall-all
-    
-    # Force state update
-    check_python_env
+    echo "\nUpdate Complete."
 }
 
-function manual_node_update() {
-    echo "Manually updating Node.js providers..."
-    npm install -g neovim
-    
-    # Force state update
-    check_node_env
-}
-
-function manual_update_all() {
-    manual_python_update
-    manual_node_update
-    check_go_env
-    check_rust_env
-}
-
-# Parse command line arguments
-case "$1" in
-    python)
-        manual_python_update "$2"
-        ;;
-    node)
-        manual_node_update
-        ;;
-    all)
-        manual_update_all
-        ;;
-    *)
-        echo "Usage: update.zsh [python|node|all] [python-version]"
-        echo "Examples:"
-        echo "  update.zsh python 3.13    # Update to specific Python version"
-        echo "  update.zsh python         # Update using SYSTEM_PYTHON_VERSION"
-        echo "  update.zsh node           # Update Node.js providers"
-        echo "  update.zsh all            # Update all languages"
-        ;;
-esac
+# If script is run directly, execute the update
+if [[ "${ZSH_EVAL_CONTEXT}" == "toplevel" ]]; then
+    dotfiles_update
+fi

@@ -2,21 +2,27 @@
 	defaultBranch = main
 
 [core]
-	editor = nvim  editor = nvim                      # Use Neovim for commit messages
-  pager = delta                                     # Modern diff viewer
-  excludesfile = ~/.config/git/ignore               # Global ignore patterns
-  autocrlf = input                                  # Handle line endings properly (Linux)
+	editor = nvim                                                   # Use Neovim for commit messages
+  pager = delta                                                   # Modern diff viewer
+  excludesfile = ~/.config/git/ignore                             # Global ignore patterns
+  autocrlf = input                                                # Handle line endings properly (Linux)
+  whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
 
 [push]
-  autoSetupRemote = true                            # Simplify pushing new branches
-  default = simple                                  # Safety against accidental pushes
+  autoSetupRemote = true                                          # Simplify pushing new branches
+  default = simple                                                # Safety against accidental pushes
+  followTags = true
 
 [pull]
-  rebase = true                                     # Prefer rebase over merge
+  rebase = true                                                   # Prefer rebase over merge
 
 [merge]
-  conflictStyle = diff3                             # Better conflict markers
-  ff = only                                         # Fast-forward only when possible
+  conflictStyle = diff3                                           # Better conflict markers
+  ff = only                                                       # Fast-forward only when possible
+
+[commit]
+  verbose = true
+  #gpgsign = true                                                 # Uncomment if SSH/GPG signing is set up
 
 [alias]
   # Shortcuts
@@ -25,24 +31,30 @@
   br = branch --verbose
   ci = commit
   amend = commit --amend --no-edit
-  undo = reset HEAD~1                               # Undo last commit
+  undo = reset HEAD~1                                             # Undo last commit
   
   # Enhanced log
   lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
   
   # Diff utilities
-  dw = diff -w                                      # Ignore whitespace
-  dc = diff --cached                                # Staged changes
+  dw = diff -w                                                    # Ignore whitespace
+  dc = diff --cached                                              # Staged changes
   
   # Branch management
+  last = log -1 HEAD
+  unstage = reset HEAD --
   cleanup = "!git branch --merged | grep -v '\\*\\|main\\|dev\\|test' | xargs -n 1 git branch -d"
 
 [delta]
   features = line-numbers decorations
-  syntax-theme = Dracula                            # Requires delta package
+  side-by-side = true
+  syntax-theme = Dracula                                          # Requires delta package
+
+[interactive]
+  diffFilter = delta --color-only
 
 [include]
-  path = ~/.config/git/config.local                 # User specific info - NOT to be tracked in VCS
+  path = ~/.config/git/config.local                               # User specific info - NOT to be tracked in VCS
 
 [includeIf "gitdir:~/projects/"]
-  path = ~/.config/git/work.inc                     # Work-specific overrides
+  path = ~/.config/git/work.inc                                   # Work-specific overrides

@@ -13,17 +13,9 @@ return {
                 templating = true,
                 wrapLineLength = 120,
               },
-              hover = {
-                documentation = true,
-                references = true,
-              },
-              completion = {
-                attributeDefaultValue = "doublequotes",
-              },
-              validate = {
-                scripts = true,
-                styles = true,
-              },
+              hover = { documentation = true, references = true },
+              completion = { attributeDefaultValue = "doublequotes" },
+              validate = { scripts = true, styles = true },
             },
           },
         },
@@ -33,12 +25,11 @@ return {
             "css",
             "scss",
             "javascript",
-            "javascriptreact",
             "typescript",
-            "typescriptreact",
             "htmldjango",
             "vue",
             "svelte",
+            "php",
           },
           init_options = {
             html = {
@@ -55,31 +46,23 @@ return {
   {
     "windwp/nvim-ts-autotag",
     opts = {
-      autotag = {
-        enable = true,
-        filetypes = {
-          "html",
-          "xml",
-          "javascript",
-          "typescript",
-          "javascriptreact",
-          "typescriptreact",
-          "svelte",
-          "vue",
-          "tsx",
-          "jsx",
-          "rescript",
-          "php",
-        },
+      -- Modern config structure
+      opts = {
+        enable_close = true,
+        enable_rename = true,
+        enable_close_on_slash = true,
+      },
+      -- Ensure PHP and XML are covered
+      per_filetype = {
+        ["php"] = { enable_close = true },
+        ["xml"] = { enable_close = true },
       },
     },
   },
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     opts = function(_, opts)
-      opts.ensure_installed = opts.ensure_installed or {}
-      table.insert(opts.ensure_installed, "emmet-ls")
-      table.insert(opts.ensure_installed, "html-lsp")
+      vim.list_extend(opts.ensure_installed, { "html-lsp", "emmet-ls" })
     end,
   },
 }

@@ -1,70 +1,28 @@
 # $XDG_CONFIG_HOME/zsh/lib/environment.zsh
-# Environment variable settings
-# HomeLab Dotfiles - Created 2025-05-05
-# NOTE: System python and Neovim provider env vars are set in functions/version.
+# Interactive environment settings
+# HomeLab Dotfiles - Refactored 2026-01-18
 
-# Editor settings
-export EDITOR="nvim"
-export VISUAL="nvim"
-
-# I think this is a better place for Tmux integration
-# Tmux XDG compliance
+# --- Tmux Integration ---
 export TMUX_CONFIG_DIR="${XDG_CONFIG_HOME}/tmux"
-export TMUX_PLUGIN_MANAGER_PATH="${XDG_CONFIG_HOME}/tmux/plugins"
+export TMUX_PLUGIN_MANAGER_PATH="${XDG_DATA_HOME}/tmux/plugins"
 
-# Set locale if not already set
-export LANG="${LANG:-en_GB.UTF-8}"
-export LC_ALL="${LC_ALL:-en_GB.UTF-8}"
-
-# Pager/less settings
-export PAGER="less"
-export LESS="-R --ignore-case --tilde"
-
-# Set man pager with colors
-# Using less with color support
+# --- Pager/Man Settings ---
+# Using less with color support (Variables defined in colours.zsh will apply here)
 export MANPAGER="less -R --use-color -Dd+r -Du+b"
-# Optional: Use neovim as manpager (commented out by default)
-# export MANPAGER="nvim +Man!"
 
-# Add user's local bin to PATH (high priority)
-export PATH="$HOME/.local/bin:$PATH"
-
-# This is only required where development undertaken
-# Should this be in local config on per host basis?
-# Set project directory
+# --- Project Management ---
 export PROJECTS_DIR="$HOME/projects"
-export VENVS_DIR="$PROJECTS_DIR/venvs"
+export DOTFILES_DIR="$PROJECTS_DIR/dotfiles"
 
-# Python Poetry path
-# Poetry path not needed as pipx handles this for us
-#export PATH="$HOME/.local/share/pypoetry/venv/bin:$PATH"
-export POETRY_CONFIG_DIR="${XDG_CONFIG_HOME}/poetry"
-export POETRY_CACHE_DIR="${XDG_CACHE_HOME}/poetry"
-export POETRY_DATA_DIR="${XDG_DATA_HOME}/poetry"
-# Your path here is not accurate, I have added the correct location underneath
-#export POETRY_VIRTUALENVS_PATH="${XDG_DATA_HOME}/poetry/virtualenvs"
-export POETRY_VIRTUALENVS_PATH="${VENVS_DIR}/poetry/"
+# --- Container Configuration ---
+# DOCKER_HOST is required for many tools to talk to Podman
+if command -v podman &>/dev/null; then
+    export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
+fi
 
-# Podman/container configuration
-# Originally the values for these two were the other way around
-# Claude seems to think CONTAINER_HOST is redundant, that podman knows what to do already
-# That's why it is commented out for now
-# DOCKER_HOST is temporary, may or may not need it
-#export CONTAINER_HOST="podman"
-export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
-
-# Set default permissions for new files
+# --- Default Permissions ---
 umask 022
 
-# Optional direnv integration
-if command -v direnv &>/dev/null; then
-    eval "$(direnv hook zsh)"
-fi
-
-# Configure zoxide if available
-if command -v zoxide &>/dev/null; then
-    eval "$(zoxide init zsh)"
-fi
-
-# Configure fzf if installed
-[[ -f "${XDG_CONFIG_HOME}/fzf/fzf.zsh" ]] && source "${XDG_CONFIG_HOME}/fzf/fzf.zsh"
+# --- Tool Initializations ---
+# Note: zoxide and direnv are now handled in their respective modules
+# or at the end of .zshrc to ensure they don't slow down the core load.

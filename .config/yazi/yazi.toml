@@ -1,0 +1,48 @@
+# HomeLab Yazi Config – 2026-01-18
+
+[manager]
+ratio = [1, 3, 4]
+sort_dir_first = true
+show_hidden = false
+linemode = "size"
+show_icons = true
+scrolloff = 3
+
+[preview]
+wrap = true
+max_width = 120
+max_height = 60
+image_quality = 75
+
+[theme]
+# TokyoNight-inspired
+fg = "#c0caf5"
+bg = "#1a1b26"
+accent = "#7aa2f7"
+selected = "#283457"
+cursor = "#bb9af7"
+border = "#414868"
+highlight = "#e0af68"
+
+# Keybindings
+[keymap.manager]
+# Navigation
+"j" = "cursor_down"
+"k" = "cursor_up"
+"h" = "parent"
+"l" = "open"
+
+# Tabs
+"t" = "tab_new"
+"T" = "tab_close"
+
+# File operations
+"yy" = "copy"
+"dd" = "cut"
+"pp" = "paste"
+
+# Shell
+"!" = "shell"
+
+# Edit file
+"e" = "open_with"

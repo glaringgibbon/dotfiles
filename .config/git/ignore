@@ -1,23 +1,35 @@
-# User specific PID and secret info
+# --- User Identity & Secrets ---
+# Machine-specific config (not to be tracked)
 config.local
+.env
+.env.*
 
-# Compiled files
+# --- OS Metadata ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editor & Temp Files ---
+*.swp
+*.swo
+*~
+.netrwbook
+# We ignore lazy-lock.json globally because we manage it per-machine
+lazy-lock.json
+
+# --- Compiled & Binary Files ---
 *.pyc
 *.o
 *.so
+__pycache__/
 
-# OS metadata
-.DS_Store
-Thumbs.db
+# --- Python Environment ---
+.venv/
+env/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
 
-# Editor temp files
-*.swp
-*~
-*.swo
-
-# Debug logs
+# --- Logs & Debugging ---
 *.log
 *.tmp
-
-# Lazygit/LazyVim artifacts
-lazy-lock.json

@@ -1,47 +1,68 @@
+-- lua/plugins/lsp-treesitter.lua
 return {
   {
     "nvim-treesitter/nvim-treesitter",
     opts = {
       ensure_installed = {
-        "bash",
-        "css",
-        "html",
-        "javascript",
-        "json",
+        -- Core languages
         "lua",
+        "vim",
+        "vimdoc",
+        "regex",
+
+        -- Markup / Docs
         "markdown",
         "markdown_inline",
+        "html",
+        "xml",
+        "json",
+        "yaml",
+        "toml",
+        "latex",
+
+        -- Shell
+        "bash",
+
+        -- Web / Frontend
+        "css",
+        "scss",
+        "javascript",
+        "typescript",
+
+        -- Backend
         "php",
         "python",
-        "regex",
-        "toml",
-        "typescript",
-        "vim",
-        "xml",
-        "yaml",
+        "go",
+        "rust",
+        "sql",
+        "c",
+
+        -- Dev Tools / Misc
+        "gitcommit",
+        "gitignore",
+        "diff",
+        "dockerfile",
+        "make",
+        "comment",
       },
+
       highlight = {
         enable = true,
       },
+
       indent = {
         enable = true,
       },
-      context_commentstring = {
-        enable = true,
-        enable_autocmd = false,
-      },
+
       incremental_selection = {
         enable = true,
         keymaps = {
           init_selection = "<C-space>",
           node_incremental = "<C-space>",
-          scope_incremental = "<nop>",
+          scope_incremental = false,
           node_decremental = "<bs>",
         },
       },
     },
-    config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
-    end,
   },
 }

@@ -5,24 +5,9 @@ return {
       servers = {
         cssls = {
           settings = {
-            css = {
-              validate = true,
-              lint = {
-                unknownAtRules = "ignore",
-              },
-            },
-            scss = {
-              validate = true,
-              lint = {
-                unknownAtRules = "ignore",
-              },
-            },
-            less = {
-              validate = true,
-              lint = {
-                unknownAtRules = "ignore",
-              },
-            },
+            css = { validate = true, lint = { unknownAtRules = "ignore" } },
+            scss = { validate = true, lint = { unknownAtRules = "ignore" } },
+            less = { validate = true, lint = { unknownAtRules = "ignore" } },
           },
         },
         tailwindcss = {
@@ -45,12 +30,14 @@ return {
       },
     },
   },
+  -- Self-contained Mason ensuring
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     opts = function(_, opts)
-      opts.ensure_installed = opts.ensure_installed or {}
-      table.insert(opts.ensure_installed, "css-lsp")
-      table.insert(opts.ensure_installed, "tailwindcss-language-server")
+      vim.list_extend(opts.ensure_installed, {
+        "css-lsp",
+        "tailwindcss-language-server",
+      })
     end,
   },
 }

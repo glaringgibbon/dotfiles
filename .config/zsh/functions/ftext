@@ -1,0 +1,2 @@
+  grep -r --color=auto "$1" .
+

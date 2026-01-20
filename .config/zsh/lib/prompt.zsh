@@ -1,12 +1,12 @@
 # $XDG_CONFIG_HOME/zsh/lib/prompt.zsh
-# ZSH prompt configuration with git awareness
-# HomeLab Dotfiles - Created 2025-05-05
+# ZSH prompt configuration with git and vi-mode awareness
+# HomeLab Dotfiles - Refactored 2026-01-18
 
-# Load required modules
+# --- Initialize Modules ---
 autoload -Uz vcs_info
-autoload -Uz colors && colors
+setopt PROMPT_SUBST
 
-# Configure vcs_info for git
+# --- Git Configuration ---
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:git:*' check-for-changes true
 zstyle ':vcs_info:git:*' stagedstr "%F{green}●%f"
@@ -14,69 +14,54 @@ zstyle ':vcs_info:git:*' unstagedstr "%F{yellow}●%f"
 zstyle ':vcs_info:git:*' formats " %F{blue}(%f%F{magenta}%b%f%c%u%F{blue})%f"
 zstyle ':vcs_info:git:*' actionformats " %F{blue}(%f%F{magenta}%b%f|%F{red}%a%f%c%u%F{blue})%f"
 
-# Function to display the current Python virtual environment
-function virtualenv_info {
-    if [[ -n "$VIRTUAL_ENV" ]]; then
-        echo "%F{cyan}($(basename $VIRTUAL_ENV))%f "
-    fi
+# --- Prompt Components ---
+
+# Vi-Mode Indicator
+function vi_mode_indicator() {
+    case $KEYMAP in
+        vicmd) echo "%F{yellow}[NORMAL]%f " ;;
+        viins|main) echo "%F{cyan}[INSERT]%f " ;;
+    esac
 }
 
-# Function to show execution time of last command
+# SSH Indicator
+function ssh_info() {
+    [[ -n $SSH_CONNECTION ]] && echo "%F{red}(SSH:%m)%f "
+}
+
+# Python VirtualEnv
+function venv_info() {
+    [[ -n "$VIRTUAL_ENV" ]] && echo "%F{blue}($(basename $VIRTUAL_ENV))%f "
+}
+
+# Command Execution Timer (Right Prompt)
 function preexec() {
-  timer=${timer:-$SECONDS}
+    timer=${timer:-$SECONDS}
 }
 
-function precmd() {
-  # Execute vcs_info before each prompt
-  vcs_info
-  
-  # Calculate command execution time
-  if [ $timer ]; then
-    timer_show=$(($SECONDS - $timer))
-    if [ $timer_show -gt 1 ]; then
-      export RPROMPT="%F{cyan}${timer_show}s%f"
-    else
-      export RPROMPT=""
+# --- Main Prompt Hook ---
+function prompt_precmd() {
+    vcs_info
+    
+    # Calculate timer for RPROMPT
+    if [ $timer ]; then
+        local timer_show=$(($SECONDS - $timer))
+        if [ $timer_show -gt 1 ]; then
+            RPROMPT="%F{yellow}${timer_show}s%f"
+        else
+            RPROMPT=""
+        fi
+        unset timer
     fi
-    unset timer
-  fi
 }
 
-# Function to show SSH indicator
-function ssh_connection() {
-  if [[ -n $SSH_CONNECTION ]]; then
-    echo "%F{red}(SSH)%f "
-  fi
-}
+add-zsh-hook precmd prompt_precmd
 
-# Function to show return status of last command
-function return_status() {
-  echo "%(?:%F{green}➜:%F{red}➜)%f "
-}
+# --- Final Prompt Definition ---
+# Format: [MODE] (SSH) (venv) ➜ directory (git) »
+PROMPT='$(vi_mode_indicator)$(ssh_info)$(venv_info)%(?:%F{green}➜:%F{red}➜)%f %F{blue}%~%f${vcs_info_msg_0_} %F{white}»%f '
 
-# Function to show current directory with home directory as ~
-function current_dir() {
-  echo "%F{blue}%~%f"
-}
-
-# Set the prompt
-setopt PROMPT_SUBST
-PROMPT='$(ssh_connection)$(virtualenv_info)$(return_status)$(current_dir)${vcs_info_msg_0_} %F{white}»%f '
-
-# Show hostname in prompt when in SSH session
-if [[ -n $SSH_CONNECTION ]]; then
-  PROMPT='%F{yellow}%m%f:$(return_status)$(current_dir)${vcs_info_msg_0_} %F{white}»%f '
-fi
-
-# Root user gets a different prompt color
+# Root user override
 if [[ $UID -eq 0 ]]; then
-  PROMPT='%F{red}%n%f@%F{yellow}%m%f:$(return_status)$(current_dir)${vcs_info_msg_0_} %F{red}#%f '
+    PROMPT='%F{red}[ROOT]%f $(ssh_info)%F{blue}%~%f${vcs_info_msg_0_} %F{red}#%f '
 fi
-
-# Function to update terminal title
-function set_terminal_title() {
-  print -Pn "\e]0;%n@%m: %~\a"
-}
-
-# Add hook to update terminal title before displaying prompt
-precmd_functions+=(set_terminal_title)

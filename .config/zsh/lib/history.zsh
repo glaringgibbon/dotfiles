@@ -1,40 +1,26 @@
 # $XDG_CONFIG_HOME/zsh/lib/history.zsh
-# History configuration settings
-# HomeLab Dotfiles - Created 2025-05-05
+# Command history configuration
+# HomeLab Dotfiles - Refactored 2026-01-18
 
-# History file configuration
-HISTFILE="${XDG_STATE_HOME}/zsh/history"  # XDG compliant history location
-HISTSIZE=50000                            # Maximum events in internal history
-SAVEHIST=50000                            # Maximum events in history file
+# --- File Location ---
+# HISTFILE is already exported in .zshenv to $XDG_STATE_HOME/zsh/history
+# Ensure the directory exists
+[[ -d "$(dirname "$HISTFILE")" ]] || mkdir -p "$(dirname "$HISTFILE")"
 
-# History command configuration
-setopt EXTENDED_HISTORY       # Record timestamp of command in HISTFILE
-setopt HIST_EXPIRE_DUPS_FIRST # Delete duplicates first when HISTFILE size exceeds HISTSIZE
+# --- History Size ---
+HISTSIZE=50000
+SAVEHIST=50000
+
+# --- History Options ---
+setopt BANG_HIST              # Treat the '!' character specially during expansion
+setopt EXTENDED_HISTORY       # Write the history file in the ':start:elapsed;command' format
 setopt INC_APPEND_HISTORY     # Write to the history file immediately, not when the shell exits
-setopt HIST_IGNORE_ALL_DUPS   # Delete old recorded entry if new entry is a duplicate
-setopt HIST_SAVE_NO_DUPS      # Don't write duplicate entries in the history file
-setopt HIST_IGNORE_DUPS       # Don't record an entry that was just recorded again
-setopt HIST_FIND_NO_DUPS      # Do not display a line previously found
-setopt HIST_IGNORE_SPACE      # Don't record commands starting with a space
-setopt HIST_REDUCE_BLANKS     # Remove superfluous blanks before recording entry
-setopt HIST_VERIFY            # Don't execute immediately upon history expansion
-setopt HIST_BEEP              # Beep when accessing nonexistent history
-
-# History navigation
-bindkey '^[[A' up-line-or-search      # Up arrow for previous matching command
-bindkey '^[[B' down-line-or-search    # Down arrow for next matching command
-
-# Create a function to search history with pattern
-function hist() {
-  if [ -z "$1" ]; then
-    history 1
-  else
-    history 1 | grep -i "$@"
-  fi
-}
-
-# Create a more readable history command
-function historystat() {
-  history 0 | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}' | \
-  grep -v "./" | column -c3 -s " " -t | sort -nr | nl | head -n25
-}
+setopt SHARE_HISTORY          # Share history between all sessions
+setopt HIST_EXPIRE_DUPS_FIRST # Expire a duplicate event first when trimming history
+setopt HIST_IGNORE_DUPS       # Do not record an event that was just recorded
+setopt HIST_IGNORE_ALL_DUPS   # Delete an old recorded event if a new event is a duplicate
+setopt HIST_FIND_NO_DUPS      # Do not display a previously found event
+setopt HIST_IGNORE_SPACE      # Do not record an event starting with a space
+setopt HIST_SAVE_NO_DUPS      # Do not write a duplicate event to the history file
+setopt HIST_REDUCE_BLANKS     # Remove superfluous blanks from each command line being added
+setopt HIST_VERIFY            # Do not execute immediately upon history expansion

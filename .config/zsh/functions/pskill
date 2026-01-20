@@ -1,0 +1,9 @@
+  local pids
+  pids=$(pgrep -f "$1")
+  if [ -n "$pids" ]; then
+    echo "Killing processes: $pids"
+    kill "$pids"
+  else
+    echo "No processes matching '$1' found"
+  fi
+
