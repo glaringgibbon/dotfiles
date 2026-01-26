@@ -35,12 +35,14 @@ command -v nvim  &>/dev/null && alias vim='nvim' && alias v='nvim'
 command -v bat   &>/dev/null && alias cat='bat'
 command -v eza   &>/dev/null && alias ls='eza --icons --group-directories-first' && alias ll='eza -lh --icons'
 command -v fd    &>/dev/null && alias find='fd'
-command -v rg    &>/dev/null && alias grep='rg'
 command -v dust  &>/dev/null && alias du='dust'
 command -v procs &>/dev/null && alias ps='procs'
+# Don't use this any more, rg is rg and grep s grep, it fucks up zsh if you do
+# rg and grep have different regex engines and grep is used by the system itself
+##command -v rg    &>/dev/null && alias grep='rg'
 
 # --- Zsh Specific ---
-alias zconf='nvim ~/projects/dotfiles/.config/zsh/zshrc'
+alias zconf='nvim "${ZDOTDIR}/.zshrc"'
 alias history='fc -li'
 
 # --- Development & Helpers ---

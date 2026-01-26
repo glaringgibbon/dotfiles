@@ -22,6 +22,7 @@ require("lazy").setup({
     -- Core optional tools
     { import = "lazyvim.plugins.extras.dap.core" },
     { import = "lazyvim.plugins.extras.dap.nlua" },
+    { import = "lazyvim.plugins.extras.test.core" },
     { import = "lazyvim.plugins.extras.util.dot" },
     { import = "lazyvim.plugins.extras.util.mini-hipatterns" },
 

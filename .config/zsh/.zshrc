@@ -26,7 +26,7 @@ done
 # Instead of sourcing every function, we tell Zsh where to find them.
 # This makes startup significantly faster.
 fpath=("${ZDOTDIR}/functions" $fpath)
-autoload -Uz mkcd extract duh ff fd ftext weather myip sysinfo dirsize pskill genpass backup zedit zreload dstow unstow stowdry
+autoload -Uz mkcd extract duh ff fd ftext weather myip sysinfo dirsize pskill genpass backup zedit zreload dstow unstow stowdry uv_init
 
 # --- 05. Module Loading ---
 # Plugins first, then integrations

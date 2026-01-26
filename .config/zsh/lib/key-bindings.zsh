@@ -23,7 +23,12 @@ zle -N zle-line-init
 zle-line-init() { cursor_mode }
 
 # Reset cursor to beam on exit
-add-zsh-hook zshexit () { echo -ne "\e[5 q" }
+zshexit_reset_cursor() {
+    echo -ne "\e[5 q"
+}
+
+autoload -Uz add-zsh-hook
+add-zsh-hook zshexit zshexit_reset_cursor
 
 # --- Standard Key Fixes ---
 # Ensure common keys work regardless of terminfo quirks

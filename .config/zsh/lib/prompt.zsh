@@ -18,36 +18,36 @@ zstyle ':vcs_info:git:*' actionformats " %F{blue}(%f%F{magenta}%b%f|%F{red}%a%f%
 # --- Prompt Components ---
 
 # Vi-Mode Indicator
-function vi_mode_indicator() {
+vi_mode_indicator() {
     case $KEYMAP in
-        vicmd) echo "%F{yellow}[NORMAL]%f " ;;
-        viins|main) echo "%F{cyan}[INSERT]%f " ;;
+        vicmd)      echo "%F{yellow}[NORMAL]%f " ;;
+        viins|main) echo "%F{cyan}[INSERT]%f "  ;;
     esac
 }
 
 # SSH Indicator
-function ssh_info() {
+ssh_info() {
     [[ -n $SSH_CONNECTION ]] && echo "%F{red}(SSH:%m)%f "
 }
 
 # Python VirtualEnv
-function venv_info() {
-    [[ -n "$VIRTUAL_ENV" ]] && echo "%F{blue}($(basename $VIRTUAL_ENV))%f "
+venv_info() {
+    [[ -n "$VIRTUAL_ENV" ]] && echo "%F{blue}($(basename "$VIRTUAL_ENV"))%f "
 }
 
 # Command Execution Timer (Right Prompt)
-function preexec() {
+preexec() {
     timer=${timer:-$SECONDS}
 }
 
 # --- Main Prompt Hook ---
-function prompt_precmd() {
+prompt_precmd() {
     vcs_info
-    
+
     # Calculate timer for RPROMPT
-    if [ $timer ]; then
-        local timer_show=$(($SECONDS - $timer))
-        if [ $timer_show -gt 1 ]; then
+    if [[ -n ${timer:-} ]]; then
+        local timer_show=$(( SECONDS - timer ))
+        if (( timer_show > 1 )); then
             RPROMPT="%F{yellow}${timer_show}s%f"
         else
             RPROMPT=""
@@ -56,6 +56,7 @@ function prompt_precmd() {
     fi
 }
 
+# Register precmd hook
 add-zsh-hook precmd prompt_precmd
 
 # --- Final Prompt Definition ---

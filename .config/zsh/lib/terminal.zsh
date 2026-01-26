@@ -9,10 +9,20 @@ function set_window_title() {
     print -Pn "\e]0;${title_prefix}%~: $1\a"
 }
 
-# Hooks for title updates
+# Named precmd hook for window title
+function set_window_title_precmd() {
+    set_window_title "zsh"
+}
+
+# Named preexec hook for window title
+function set_window_title_preexec() {
+    set_window_title "$1"
+}
+
+# Register hooks properly
 autoload -Uz add-zsh-hook
-add-zsh-hook precmd  () { set_window_title "zsh" }
-add-zsh-hook preexec () { set_window_title "$1" }
+add-zsh-hook precmd set_window_title_precmd
+add-zsh-hook preexec set_window_title_preexec
 
 # Terminal-specific fixes
 case "$TERM" in
