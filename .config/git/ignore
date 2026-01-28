@@ -1,8 +1,8 @@
 # --- User Identity & Secrets ---
 # Machine-specific config (not to be tracked)
 config.local
-.env
-.env.*
+**/.env
+**/.env.*
 
 # --- OS Metadata ---
 .DS_Store
