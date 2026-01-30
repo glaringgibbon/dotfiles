@@ -1,5 +1,9 @@
 -- lua/chatllm/actions.lua
-local client = require("chatllm.client")
+-- TODO (Phase 9): Implement Treesitter-based context selection
+-- Allow user to select code by AST node (function, class, block, etc.)
+-- Command: <leader>ats (AI Treesitter Select)
+-- Fallback to visual selection if Treesitter unavailable
+-- Benefits: More precise selection, language-aware, no manual highlightinglocal client = require("chatllm.client")
 local ui = require("chatllm.ui")
 local models = require("chatllm.models")
 local prompts = require("chatllm.prompts")
@@ -24,7 +28,8 @@ end
 
 -- Generic: run any prompt from the prompts system
 function M.run_prompt(prompt_id)
-  local prompt_data = prompts.get(prompt_id)
+  -- FIX: Use get_by_id instead of get
+  local prompt_data = prompts.get_by_id(prompt_id)
   if not prompt_data then
     vim.notify("Prompt '" .. prompt_id .. "' not found", vim.log.levels.ERROR)
     return
@@ -40,12 +45,16 @@ function M.run_prompt(prompt_id)
     ui.toggle_window()
   end
 
-  local full_prompt = prompt_data.prompt .. context
-
   ui.show_loading()
 
+  -- FIX: Use client.chat to support system/user roles
+  local messages = {
+    { role = "system", content = prompt_data.system or "You are a helpful senior software engineer." },
+    { role = "user", content = prompt_data.prompt .. "\n\nCode:\n" .. context },
+  }
+
   vim.defer_fn(function()
-    local response, err = client.ask(full_prompt, {
+    local response, err = client.chat(messages, {
       model = models.get_model(),
     })
 

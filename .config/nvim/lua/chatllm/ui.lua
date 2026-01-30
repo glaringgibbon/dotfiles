@@ -1,6 +1,15 @@
 -- lua/chatllm/ui.lua
 -- ChatLLM UI Management
 -- Handles buffer creation, window management, and display
+-- TODO (Phase 6.2): Handle tmux-restored chat buffers
+-- Detect when chat buffer is restored but empty
+-- Show notification or auto-load last session on buffer focus
+-- Ensure no surprising behavior during tmux restore
+-- TODO (Phase 8): Replace vim.ui.input with floating editor for <leader>ac
+-- When user input exceeds ~80 chars, open floating window instead of input box
+-- Reuse editor.lua's open_prompt_editor pattern for consistencylocal M = {}
+
+local sessions = require("chatllm.sessions")
 
 local M = {}
 
@@ -8,8 +17,46 @@ local M = {}
 local state = {
   buf = nil,
   win = nil,
-  chat_history = {}, -- Store conversation history per session
+  chat_history = {}, -- Store conversation history in-memory
+  initialized = false, -- track if we've attempted session restore
 }
+
+-- Internal: restore history from a loaded session into buffer + state
+local function restore_from_session(session)
+  state.chat_history = session.messages or {}
+
+  local buf = state.buf or vim.api.nvim_create_buf(false, true)
+
+  state.buf = buf
+  vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+  vim.api.nvim_buf_set_option(buf, "bufhidden", "hide")
+  vim.api.nvim_buf_set_option(buf, "swapfile", false)
+  vim.api.nvim_buf_set_option(buf, "filetype", "markdown")
+  vim.api.nvim_buf_set_name(buf, "ChatLLM")
+
+  local lines = {}
+  for _, msg in ipairs(state.chat_history) do
+    if msg.role == "user" then
+      table.insert(lines, "**You:**")
+    else
+      table.insert(lines, "**ChatLLM:**")
+    end
+    for line in (msg.content or ""):gmatch("[^\n]+") do
+      table.insert(lines, line)
+    end
+    table.insert(lines, "")
+  end
+
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+end
+
+-- Internal: persist current history to disk
+local function persist_history()
+  local ok, err = sessions.save_session(state.chat_history)
+  if not ok and err then
+    vim.notify("[ChatLLM] Failed to save session: " .. tostring(err), vim.log.levels.WARN)
+  end
+end
 
 -- Create or get the ChatLLM buffer
 local function get_or_create_buffer()
@@ -18,7 +65,20 @@ local function get_or_create_buffer()
     return state.buf
   end
 
-  -- Create new buffer
+  -- Attempt one-time session restore on first buffer creation
+  if not state.initialized then
+    state.initialized = true
+    local session, err = sessions.load_last_session()
+    if session then
+      restore_from_session(session)
+      return state.buf
+    else
+      -- No session: continue to create fresh buffer
+      -- (err is expected on first use; no need to notify)
+    end
+  end
+
+  -- Create new empty buffer
   state.buf = vim.api.nvim_create_buf(false, true)
 
   -- Set buffer options
@@ -103,6 +163,9 @@ local function append_to_buffer(text, role)
     content = text,
     timestamp = os.time(),
   })
+
+  -- Persist after each message
+  persist_history()
 end
 
 -- Clear the ChatLLM buffer
@@ -112,6 +175,7 @@ local function clear_buffer()
   if vim.api.nvim_buf_is_valid(buf) then
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
     state.chat_history = {}
+    persist_history()
   end
 end
 
@@ -129,9 +193,12 @@ local function remove_loading()
   local buf = get_or_create_buffer()
 
   if vim.api.nvim_buf_is_valid(buf) then
-    local lines = vim.api.nvim_buf_get_lines(buf, -3, -1, false)
-    if lines[1] and lines[1]:match("⏳ Loading") then
-      vim.api.nvim_buf_set_lines(buf, -3, -1, false, {})
+    local line_count = vim.api.nvim_buf_line_count(buf)
+    if line_count >= 2 then
+      local lines = vim.api.nvim_buf_get_lines(buf, line_count - 2, line_count, false)
+      if lines[1] and lines[1]:match("⏳ Loading") then
+        vim.api.nvim_buf_set_lines(buf, line_count - 2, line_count, false, {})
+      end
     end
   end
 end

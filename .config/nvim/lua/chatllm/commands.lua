@@ -1,4 +1,8 @@
 -- lua/chatllm/commands.lua
+-- TODO (Phase 8): Expand convenience functions to show sub-options
+-- <leader>ar should show picker: [readability, speed, performance, etc.]
+-- <leader>ae should show picker: [explain, review, document, etc.]
+-- Use nested prompt library structure to auto-generate these menus
 local prompts = require("chatllm.prompts")
 local actions = require("chatllm.actions")
 local editor = require("chatllm.editor")
