@@ -7,7 +7,7 @@
 -- Ensure no surprising behavior during tmux restore
 -- TODO (Phase 8): Replace vim.ui.input with floating editor for <leader>ac
 -- When user input exceeds ~80 chars, open floating window instead of input box
--- Reuse editor.lua's open_prompt_editor pattern for consistencylocal M = {}
+-- Reuse editor.lua's open_prompt_editor pattern for consistency
 
 local sessions = require("chatllm.sessions")
 
@@ -241,6 +241,37 @@ end
 -- Public API: Get window number
 function M.get_window()
   return state.win
+end
+
+-- Add to lua/chatllm/ui.lua
+
+function M.restore_session(session)
+  -- This is essentially the logic we already have in the internal restore_from_session
+  -- We should expose it or refactor it.
+
+  -- For now, let's just make it public:
+  state.chat_history = session.messages or {}
+  local buf = get_or_create_buffer()
+
+  local lines = {}
+  for _, msg in ipairs(state.chat_history) do
+    if msg.role == "user" then
+      table.insert(lines, "**You:**")
+    else
+      table.insert(lines, "**ChatLLM:**")
+    end
+    for line in (msg.content or ""):gmatch("[^\n]+") do
+      table.insert(lines, line)
+    end
+    table.insert(lines, "")
+  end
+
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+  -- If the window isn't open, open it
+  if not state.win or not vim.api.nvim_win_is_valid(state.win) then
+    M.toggle_window()
+  end
 end
 
 return M

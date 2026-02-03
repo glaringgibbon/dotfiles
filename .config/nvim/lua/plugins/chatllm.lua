@@ -56,6 +56,13 @@ return {
       end,
       desc = "AI Select Model",
     },
+    {
+      "<leader>as",
+      function()
+        require("chatllm.actions").pick_session()
+      end,
+      desc = "Pick AI Session",
+    },
 
     -- NEW: Prompt management
     {

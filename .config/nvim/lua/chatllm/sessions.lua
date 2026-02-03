@@ -61,17 +61,6 @@ local function write_file(path, content)
   return true
 end
 
-local function read_file(path)
-  local fd = uv.fs_open(path, "r", 420)
-  if not fd then
-    return nil, "Failed to open file for reading: " .. path
-  end
-  local stat = uv.fs_fstat(fd)
-  local data = uv.fs_read(fd, stat.size, 0)
-  uv.fs_close(fd)
-  return data
-end
-
 -- Generate a new session id (timestamp-based)
 local function new_session_id()
   return tostring(os.time())
@@ -188,6 +177,67 @@ function M.new_session()
   local okp, errp = write_file(last_path, id .. "\n")
   if not okp then
     return nil, errp
+  end
+
+  return session
+end
+
+-- Public: List all sessions for the current project
+function M.list_sessions()
+  local project = get_project_name()
+  local proj_dir = get_project_dir(project)
+  local sessions_dir = proj_dir .. "/sessions"
+
+  local files = vim.fn.glob(sessions_dir .. "/*.lua", false, true)
+  local results = {}
+
+  for _, file in ipairs(files) do
+    local ok, session = pcall(dofile, file)
+    if ok and type(session) == "table" then
+      -- Ensure we have strings for Snacks to index
+      local id = tostring(session.id or vim.fn.fnamemodify(file, ":t:r"))
+      local updated = tonumber(session.updated) or 0
+
+      local first_msg = "Empty Session"
+      if session.messages and session.messages[1] and session.messages[1].content then
+        first_msg = tostring(session.messages[1].content):sub(1, 50):gsub("\n", " ") .. "..."
+      end
+
+      table.insert(results, {
+        id = id,
+        text = first_msg, -- Snacks often looks for 'text' field for matching
+        file = file,
+        updated = updated,
+        summary = first_msg,
+        project = project,
+      })
+    end
+  end
+
+  table.sort(results, function(a, b)
+    return a.updated > b.updated
+  end)
+  return results
+end
+
+-- Public: Load a specific session by ID
+function M.load_session(id)
+  local project = get_project_name()
+  local proj_dir = get_project_dir(project)
+  local session_path = proj_dir .. "/sessions/" .. id .. ".lua"
+
+  if vim.fn.filereadable(session_path) == 0 then
+    return nil, "Session not found"
+  end
+
+  local session = dofile(session_path)
+
+  -- Update last_session pointer
+  local last_path = get_last_session_path(project)
+  local fd = vim.loop.fs_open(last_path, "w", 420)
+  if fd then
+    vim.loop.fs_write(fd, id .. "\n", -1)
+    vim.loop.fs_close(fd)
   end
 
   return session
